@@ -1326,7 +1326,7 @@ if __name__ == '__main__':
 
             #total_data_points = sum([len(net_dataidx_map[r]) for r in selected])
             #fed_avg_freqs = [len(net_dataidx_map[r]) / total_data_points for r in selected]
-            fed_avg_freqs = [1/len(selected) for r in selected]
+            fed_avg_freqs = [1/len(selected) for r in selected]  # This is because we move 3 steps for all clients, so this average should be unweighted.
 
 
             for idx in range(len(selected)):
@@ -1353,68 +1353,7 @@ if __name__ == '__main__':
 
 
             #logger.info('>> Global Model Train accuracy: %f' % train_acc)
-            logger.info('>> Global Model Test accuracy: %f' % test_acc) 
-
-
-        for idx in range(args.n_parties):
-            encoder_list[idx].load_state_dict(encoder_global_para)
-
-        for round in range(0):
-            logger.info("in comm round:" + str(round))
-
-            arr = np.arange(args.n_parties)
-            np.random.shuffle(arr)
-            selected = arr[:int(args.n_parties * args.sample)]
-            '''
-            for idx in selected:
-                encoder_list[idx].load_state_dict(encoder_global_para)
-                classifier_list[idx].load_state_dict(classifier_global_para)
-            '''
-
-            local_train_net_classifier(encoder_list, classifier_list, selected, args, net_dataidx_map, test_dl = test_dl_global, device=device)
-            # local_train_net(nets, args, net_dataidx_map, local_split=False, device=device)
-
-            # update global model
-            '''
-            total_data_points = sum([len(net_dataidx_map[r]) for r in selected])
-            fed_avg_freqs = [len(net_dataidx_map[r]) / total_data_points for r in selected]
-
-            for idx in range(len(selected)):
-                net_para = encoder_list[selected[idx]].cpu().state_dict()
-                if idx == 0:
-                    for key in net_para:
-                        encoder_global_para[key] = net_para[key] * fed_avg_freqs[idx]
-                else:
-                    for key in net_para:
-                        encoder_global_para[key] += net_para[key] * fed_avg_freqs[idx]
-
-            encoder_list[0].load_state_dict(encoder_global_para)
-
-            for idx in range(len(selected)):
-                net_para = classifier_list[selected[idx]].cpu().state_dict()
-                if idx == 0:
-                    for key in net_para:
-                        classifier_global_para[key] = net_para[key] * fed_avg_freqs[idx]
-                else:
-                    for key in net_para:
-                        classifier_global_para[key] += net_para[key] * fed_avg_freqs[idx]
-
-            classifier_list[0].load_state_dict(classifier_global_para)
-            '''
-
-
-            logger.info('global n_training: %d' % len(train_dl_global))
-            logger.info('global n_test: %d' % len(test_dl_global))
-
-            global_model = CombineModel(encoder_list[0], classifier_list[0])
-
-
-            train_acc = compute_accuracy(global_model, train_dl_global)
-            test_acc, conf_matrix = compute_accuracy(global_model, test_dl_global, get_confusion_matrix=True)
-
-
-            logger.info('>> Global Model Train accuracy: %f' % train_acc)
-            logger.info('>> Global Model Test accuracy: %f' % test_acc)      
+            logger.info('>> Global Model Test accuracy: %f' % test_acc)     
 
 
     elif args.alg == 'local_training':
