@@ -54,6 +54,7 @@ def get_args():
     parser.add_argument('--n_clusters', type=int, default=5, help='Number of clusters for FedConcat')
     parser.add_argument('--encoder_round', type=int, default=50, help='Encoder communication round for FedConcat')
     parser.add_argument('--classifier_round', type=int, default=1000, help='Classifier communication round for FedConcat')
+    parser.add_argument('--eps', type=float, default=0, help='Epsilon for differential privacy to protect label distribution')
     args = parser.parse_args()
     return args
 
@@ -891,6 +892,14 @@ if __name__ == '__main__':
     for i in range(args.n_parties):
         for j in traindata_cls_counts[i].keys():
             client_distribution[i][j] = traindata_cls_counts[i][j] / len(net_dataidx_map[i])
+            
+    if args.eps > 0:
+        for i in range(args.n_parties):
+            lap = np.random.laplace(0,2/args.eps,n_classes)
+            for j in range(n_classes):
+                client_distribution[i][j] += lap[j]
+    
+        logger.info(client_distribution)
 
     train_dl_global, test_dl_global, train_ds_global, test_ds_global = get_dataloader(args.dataset,
                                                                                         args.datadir,
