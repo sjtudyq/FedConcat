@@ -14,7 +14,9 @@ An example running script is in `run.sh`.
 | `epochs` | Number of local training epochs, default = `5`. |
 | `n_parties` | Number of parties, default = `2`. |
 | `rho` | The parameter controlling the momentum SGD, default = `0`. |
-| `comm_round`    | Number of communication rounds to use, default = `50`. |
+| `n_clusters`    | Number of clusters. |
+| `encoder_round`    | Number of communication rounds for training encoders in each cluster. |
+| `classifier_round`    | Number of communication rounds for training the global classifier. |
 | `partition`    | The partition way. Options: `homo`, `noniid-labeldir`, `noniid-#label1` (or 2, 3, ..., which means the fixed number of labels each party owns) |
 | `beta` | The concentration parameter of the Dirichlet distribution for heterogeneous partition, default = `0.5`. |
 | `device` | Specify the device to run the program, default = `cuda:0`. |
