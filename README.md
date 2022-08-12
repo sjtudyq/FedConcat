@@ -1,6 +1,6 @@
 # FedConcat
 
-This is the code for Exploiting Label Skew in Federated Learning with Model Concatenation. 
+This is source code for Exploiting Label Skew in Federated Learning with Model Concatenation. 
 
 An example running script is in `run.sh`.
 
