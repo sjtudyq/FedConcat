@@ -895,7 +895,7 @@ if __name__ == '__main__':
             
     if args.eps > 0:
         for i in range(args.n_parties):
-            lap = np.random.laplace(0,2/args.eps,n_classes)
+            lap = np.random.laplace(0,1/args.eps,n_classes)
             for j in range(n_classes):
                 client_distribution[i][j] += lap[j]
     
