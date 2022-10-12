@@ -13,6 +13,7 @@ import os
 import copy
 from math import *
 from sklearn.cluster import KMeans
+import random
 
 import datetime
 #from torch.utils.tensorboard import SummaryWriter
@@ -882,6 +883,7 @@ if __name__ == '__main__':
     logger.info("#" * 100)
     np.random.seed(seed)
     torch.manual_seed(seed)
+    random.seed(seed)
     logger.info("Partitioning data")
     X_train, y_train, X_test, y_test, net_dataidx_map, traindata_cls_counts = partition_data(
         args.dataset, args.datadir, args.logdir, args.partition, args.n_parties, beta=args.beta)
