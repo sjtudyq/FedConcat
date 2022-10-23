@@ -945,10 +945,10 @@ if __name__ == '__main__':
         global_models, global_model_meta_data, global_layer_type = init_nets(args.net_config, 0, 1, args)
         global_model = global_models[0]
 
-        #global_para = global_model.state_dict()
-        #if args.is_same_initial:
-        #    for net_id, net in nets.items():
-        #        net.load_state_dict(global_para)
+        global_para = global_model.state_dict()
+        if args.is_same_initial:
+            for net_id, net in nets.items():
+                net.load_state_dict(global_para)
 
         for round in range(args.comm_round):
             logger.info("in comm round:" + str(round))
@@ -957,14 +957,14 @@ if __name__ == '__main__':
             np.random.shuffle(arr)
             selected = arr[:int(args.n_parties * args.sample)]
 
-            #global_para = global_model.state_dict()
-            #if round == 0:
-            #    if args.is_same_initial:
-            #        for idx in selected:
-            #            nets[idx].load_state_dict(global_para)
-            #else:
-            #    for idx in selected:
-            #        nets[idx].load_state_dict(global_para)
+            global_para = global_model.state_dict()
+            if round == 0:
+                if args.is_same_initial:
+                    for idx in selected:
+                        nets[idx].load_state_dict(global_para)
+            else:
+                for idx in selected:
+                    nets[idx].load_state_dict(global_para)
 
             local_train_net(nets, selected, args, net_dataidx_map, test_dl = test_dl_global, device=device)
             # local_train_net(nets, args, net_dataidx_map, local_split=False, device=device)
