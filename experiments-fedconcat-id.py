@@ -1334,9 +1334,16 @@ if __name__ == '__main__':
 
         for round in range(1,args.encoder_round):
             logger.info("in comm round:" + str(round))
+            top = int(args.n_parties * args.sample)
+            participation = np.random.permutation(np.arange(args.n_parties))[:top]
 
             for i in range(num_K):
-                selected = group[i]
+                selected = []
+                for x in group[i]:
+                    if x in participation:
+                        selected.append(x)
+                if len(selected) == 0:
+                    continue
 
                 for idx in selected:
                     encoder_list[idx].load_state_dict(encoder_global_para[i])
