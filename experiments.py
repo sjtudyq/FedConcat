@@ -1241,17 +1241,27 @@ if __name__ == '__main__':
         num_ftrs = 84
         if args.model == "vgg-9":
             num_ftrs = 512
+        elif args.model == "resnet":
+            num_ftrs = 2048
         encoder_list = []
         classifier_list = []
         for i in range(args.n_parties):
-            if args.dataset in ("cifar10", "svhn"):
+            if args.dataset in ("tinyimagenet", "cifar100", "cifar10", "svhn"):
                 if args.model == "simple-cnn":
                     encoder = SimpleEncoder(input_dim=(16 * 5 * 5), hidden_dims=[120, 84], output_dim=10)
                     encoder_list.append(encoder)
                 elif args.model == "vgg-9":
                     encoder = ModerateEncoder()
                     encoder_list.append(encoder)
-                classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=10)
+                elif args.model == "resnet":
+                    encoder = ResNetEncoder()
+                    encoder_list.append(encoder)
+                if args.dataset == "cifar100":
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=100)
+                elif args.dataset == "tinyimagenet":
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=200)
+                else:
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=10)
                 classifier_list.append(classifier)
             else:
                 encoder = SimpleEncoder(input_dim=(16 * 4 * 4), hidden_dims=[120, 84], output_dim=10)
