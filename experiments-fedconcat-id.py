@@ -452,9 +452,9 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, train_data
             sz = x.shape
             break
     if len(sz) == 4:
-        noise = torch.rand((10000,sz[1],sz[2],sz[3]))
+        noise = torch.rand((10000,sz[1],sz[2],sz[3])).to(device)
     else:
-        noise = torch.rand((10000,sz[1],sz[2]))
+        noise = torch.rand((10000,sz[1],sz[2])).to(device)
     logits = net_classifier(net_encoder(noise)).cpu().detach()
     prob = torch.softmax(logits, dim=1)
     prob = torch.mean(prob, dim=0).tolist()
@@ -1265,6 +1265,8 @@ if __name__ == '__main__':
         num_ftrs = 84
         if args.model == "vgg-9":
             num_ftrs = 512
+        elif args.model == "resnet":
+            num_ftrs = 2048
         encoder_list = []
         classifier_list = []
         for i in range(args.n_parties):
@@ -1275,7 +1277,15 @@ if __name__ == '__main__':
                 elif args.model == "vgg-9":
                     encoder = ModerateEncoder()
                     encoder_list.append(encoder)
-                classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=10)
+                elif args.model == "resnet":
+                    encoder = ResNetEncoder()
+                    encoder_list.append(encoder)
+                if args.dataset == "cifar100":
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=100)
+                elif args.dataset == "tinyimagenet":
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=200)
+                else:
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=10)
                 classifier_list.append(classifier)
             else:
                 encoder = SimpleEncoder(input_dim=(16 * 4 * 4), hidden_dims=[120, 84], output_dim=10)
