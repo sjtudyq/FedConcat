@@ -1333,12 +1333,18 @@ if __name__ == '__main__':
             encoder_selected[i].to(device)
 
         encoder_all = CombineAllModel(encoder_selected)
-        larger_classifier_global = SimpleClassifier(hidden_dim=num_ftrs*num_K, output_dim=10)
+        if args.dataset == "cifar100":
+            output_dim = 100
+        elif args.dataset == "tinyimagenet":
+            output_dim = 200
+        else:
+            output_dim = 10
+        larger_classifier_global = SimpleClassifier(hidden_dim=num_ftrs*num_K, output_dim=output_dim)
         larger_classifier_global_para = larger_classifier_global.cpu().state_dict()
 
         larger_classifier_list = []
         for t in range(args.n_parties):
-            larger_classifier_list.append(SimpleClassifier(hidden_dim=num_ftrs*num_K, output_dim=10))
+            larger_classifier_list.append(SimpleClassifier(hidden_dim=num_ftrs*num_K, output_dim=output_dim))
 
         for round in range(args.classifier_round):
             
