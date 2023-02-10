@@ -458,6 +458,24 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, train_data
     logits = net_classifier(net_encoder(noise)).cpu().detach()
     prob = torch.softmax(logits, dim=1)
     prob = torch.mean(prob, dim=0).tolist()
+    
+    # code for resnet-50 (otherwise the GPU memory explodes)
+    '''
+    for i in range(100):
+        if len(sz) == 4:
+            noise = torch.rand((100,sz[1],sz[2],sz[3])).to(device)
+        else:
+            noise = torch.rand((100,sz[1],sz[2])).to(device)
+        logits = net_classifier(net_encoder(noise)).cpu().detach()
+        prob = torch.softmax(logits, dim=1)
+        if i == 0:
+            prob_add = torch.mean(prob, dim=0)
+        else:
+            prob_add += torch.mean(prob, dim=0)
+
+    prob = prob_add/100
+    prob = prob.tolist()
+    '''
     logger.info(prob)
 
     return prob
