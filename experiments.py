@@ -473,6 +473,9 @@ def local_train_net_encoder_classifier(encoder_list, classifier_list, selected, 
         n_epoch = args.epochs
 
         train_net_encoder_classifier(net_id, encoder_list[net_id], classifier_list[net_id], train_dl_local, test_dl, n_epoch, args.lr, args.optimizer, device=device)
+        
+        encoder_list[net_id].to("cpu")
+        classifier_list[net_id].to("cpu")
 
 def train_net_classifier(net_id, net_encoder, net_classifier, train_dataloader, test_dataloader, epochs, lr, args_optimizer, device="cpu"):
     logger.info('Training network %s' % str(net_id))
