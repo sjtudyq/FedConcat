@@ -497,6 +497,8 @@ def local_train_net_encoder_classifier(encoder_list, classifier_list, selected, 
         else:
             train_net_encoder_classifier(net_id, encoder_list[net_id], classifier_list[net_id], train_dl_local, test_dl, n_epoch, args.lr, args.optimizer, device=device)
 
+        encoder_list[net_id].to("cpu")
+        classifier_list[net_id].to("cpu")
     if edis:
         return estimated_dis
 
