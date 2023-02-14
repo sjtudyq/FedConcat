@@ -1288,7 +1288,7 @@ if __name__ == '__main__':
         encoder_list = []
         classifier_list = []
         for i in range(args.n_parties):
-            if args.dataset in ("cifar10", "svhn"):
+            if args.dataset in ("tinyimagenet", "cifar100", "cifar10", "svhn"):
                 if args.model == "simple-cnn":
                     encoder = SimpleEncoder(input_dim=(16 * 5 * 5), hidden_dims=[120, 84], output_dim=10)
                     encoder_list.append(encoder)
