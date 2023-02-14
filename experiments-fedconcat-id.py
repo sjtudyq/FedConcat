@@ -188,12 +188,6 @@ def train_net(net_id, net, train_dataloader, test_dataloader, epochs, lr, args_o
             sz = x.shape
             break
     
-    noise = torch.rand((10000,sz[1],sz[2],sz[3]))
-    logits = net(noise).cpu().detach()
-    prob = torch.softmax(logits, dim=1)
-    prob = torch.mean(prob, dim=0)
-    logger.info(prob)
-
     logger.info(' ** Training complete **')
     return 0,0#train_acc, test_acc
 
@@ -451,16 +445,6 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, train_data
         for batch_idx, (x, target) in enumerate(tmp):
             sz = x.shape
             break
-    if len(sz) == 4:
-        noise = torch.rand((10000,sz[1],sz[2],sz[3])).to(device)
-    else:
-        noise = torch.rand((10000,sz[1],sz[2])).to(device)
-    logits = net_classifier(net_encoder(noise)).cpu().detach()
-    prob = torch.softmax(logits, dim=1)
-    prob = torch.mean(prob, dim=0).tolist()
-    
-    # code for resnet-50 (otherwise the GPU memory explodes)
-    '''
     for i in range(100):
         if len(sz) == 4:
             noise = torch.rand((100,sz[1],sz[2],sz[3])).to(device)
@@ -475,7 +459,7 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, train_data
 
     prob = prob_add/100
     prob = prob.tolist()
-    '''
+    
     logger.info(prob)
 
     return prob
