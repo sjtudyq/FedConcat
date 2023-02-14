@@ -1345,7 +1345,28 @@ if __name__ == '__main__':
                 else:
                     for key in net_para:
                         classifier_global_para[i][key] += net_para[key] * fed_avg_freqs[idx]
+        
+        '''
+        # code for combining the shallow layers
+        selected = [i for i in range(args.n_parties)]
+        total_data_points = sum([len(net_dataidx_map[r]) for r in selected])
+        fed_avg_freqs = [sum([len(net_dataidx_map[r]) for r in list(set(selected).intersection(set(group[c])))]) / total_data_points for c in range(num_K)]
 
+        net_para = encoder_list[0].cpu().state_dict()
+        for key in net_para:
+            if "fc2" not in key:
+                encoder_global_para[0][key] *= fed_avg_freqs[0]
+        for c in range(1,num_K):
+            for key in net_para:
+                if "fc2" not in key:
+                    encoder_global_para[0][key] += encoder_global_para[c][key] * fed_avg_freqs[c]
+
+        for c in range(1,num_K):
+            for key in net_para:
+                if "fc2" not in key:
+                    encoder_global_para[i][key] = encoder_global_para[0][key]
+        '''
+        
         for round in range(1,args.encoder_round):
             logger.info("in comm round:" + str(round))
             top = int(args.n_parties * args.sample)
@@ -1387,6 +1408,29 @@ if __name__ == '__main__':
                         for key in net_para:
                             classifier_global_para[i][key] += net_para[key] * fed_avg_freqs[idx]            
             
+            '''
+            # code for combining the shallow layers
+            selected = participation
+            total_data_points = sum([len(net_dataidx_map[r]) for r in selected])
+            fed_avg_freqs = [sum([len(net_dataidx_map[r]) for r in list(set(selected).intersection(set(group[c])))]) / total_data_points for c in range(num_K)]
+            #logger.info(fed_avg_freqs)
+
+            net_para = encoder_list[0].cpu().state_dict()
+            for key in net_para:
+                #logger.info(key)
+                if "fc2" not in key:
+                    encoder_global_para[0][key] *= fed_avg_freqs[0]
+            for c in range(1,num_K):
+                for key in net_para:
+                    if "fc2" not in key:
+                        encoder_global_para[0][key] += encoder_global_para[c][key] * fed_avg_freqs[c]
+
+            for c in range(1,num_K):
+                for key in net_para:
+                    if "fc2" not in key:
+                        encoder_global_para[i][key] = encoder_global_para[0][key]
+            '''
+                        
         encoder_selected = []
         for i in range(num_K):
             encoder_selected.append(encoder_list[i])
