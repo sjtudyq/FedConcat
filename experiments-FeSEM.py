@@ -413,7 +413,7 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, global_enc
         train_dataloader = [train_dataloader]
 
     #writer = SummaryWriter()
-    mu = 0.1 # according to github implementation
+    mu = 0.1
 
     for epoch in range(epochs):
         epoch_loss_collector = []
