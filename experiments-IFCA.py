@@ -1344,27 +1344,26 @@ if __name__ == '__main__':
 
                 local_train_net_encoder_classifier(encoder_list, classifier_list, selected, args, net_dataidx_map, test_dl = test_dl_global, device=device)
 
-                for i in range(num_K):
-                    total_data_points = sum([len(net_dataidx_map[r]) for r in selected])
-                    fed_avg_freqs = [len(net_dataidx_map[r]) / total_data_points for r in selected]
+                total_data_points = sum([len(net_dataidx_map[r]) for r in selected])
+                fed_avg_freqs = [len(net_dataidx_map[r]) / total_data_points for r in selected]
 
-                    for idx in range(len(selected)):
-                        net_para = encoder_list[selected[idx]].cpu().state_dict()
-                        if idx == 0:
-                            for key in net_para:
-                                encoder_global_para[i][key] = net_para[key] * fed_avg_freqs[idx]
-                        else:
-                            for key in net_para:
-                                encoder_global_para[i][key] += net_para[key] * fed_avg_freqs[idx]
+                for idx in range(len(selected)):
+                    net_para = encoder_list[selected[idx]].cpu().state_dict()
+                    if idx == 0:
+                        for key in net_para:
+                            encoder_global_para[i][key] = net_para[key] * fed_avg_freqs[idx]
+                    else:
+                        for key in net_para:
+                            encoder_global_para[i][key] += net_para[key] * fed_avg_freqs[idx]
 
-                    for idx in range(len(selected)):
-                        net_para = classifier_list[selected[idx]].cpu().state_dict()
-                        if idx == 0:
-                            for key in net_para:
-                                classifier_global_para[i][key] = net_para[key] * fed_avg_freqs[idx]
-                        else:
-                            for key in net_para:
-                                classifier_global_para[i][key] += net_para[key] * fed_avg_freqs[idx]            
+                for idx in range(len(selected)):
+                    net_para = classifier_list[selected[idx]].cpu().state_dict()
+                    if idx == 0:
+                        for key in net_para:
+                            classifier_global_para[i][key] = net_para[key] * fed_avg_freqs[idx]
+                    else:
+                        for key in net_para:
+                            classifier_global_para[i][key] += net_para[key] * fed_avg_freqs[idx]            
             
         encoder_selected = []
         for i in range(num_K):
