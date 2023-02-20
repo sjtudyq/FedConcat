@@ -513,7 +513,9 @@ def FedSoft(group_assign, encoder_global_para, classifier_global_para, encoder_l
         encoder = SimpleEncoder(input_dim=(16 * 4 * 4), hidden_dims=[120, 84], output_dim=10)
         classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=10)
 
-    for net_id in selected:
+    for net_id in range(args.n_parties):
+        if net_id not in selected:
+            continue
         net_encoder = encoder_list[net_id]
         net_classifier = classifier_list[net_id]
         
@@ -546,7 +548,7 @@ def FedSoft(group_assign, encoder_global_para, classifier_global_para, encoder_l
         loss_all = np.array(loss_all)
         vote = np.argmin(loss_all, axis=0)
         total = len(vote)
-        logger.info(vote.tolist())
+        #logger.info(vote.tolist())
         for i in range(len(encoder_global_para)):
             cnt = np.count_nonzero(vote == i)
             group_assign[i][net_id] = max(0.0001, cnt / total)
@@ -1373,6 +1375,12 @@ if __name__ == '__main__':
 
             if round % 2 == 0:
                 group_assign = FedSoft(group_assign, encoder_global_para, classifier_global_para, encoder_list, classifier_list, participation, args, net_dataidx_map, test_dl = test_dl_global, device=device)
+            
+            # without assigning the cluster model to each client, the cluster model has very bad accuracy (almost random guess)
+            chosen = np.argmax(np.array(group_assign),axis=0)
+            for i in range(args.n_parties):
+                encoder_list[i].load_state_dict(encoder_global_para[chosen[i]])
+                classifier_list[i].load_state_dict(classifier_global_para[chosen[i]])
 
             selected = participation
 
@@ -1381,6 +1389,7 @@ if __name__ == '__main__':
             for i in range(num_K):
                 total_data_points = sum([len(net_dataidx_map[r]) * group_assign[i][r] for r in selected])
                 fed_avg_freqs = [len(net_dataidx_map[r]) * group_assign[i][r] / total_data_points for r in selected]
+                logger.info(fed_avg_freqs)
 
                 for idx in range(len(selected)):
                     net_para = encoder_list[selected[idx]].cpu().state_dict()
