@@ -83,6 +83,10 @@ def init_nets(net_configs, dropout_p, n_parties, args):
                 input_size = 18
                 output_size = 2
                 hidden_sizes = [16,8]
+            elif args.dataset == 'criteo':
+                input_size = 12
+                output_size = 2
+                hidden_sizes = [16, 24, 32]        
             net = FcNet(input_size, hidden_sizes, output_size, dropout_p)
         elif args.model == "vgg":
             net = vgg11()
@@ -868,6 +872,9 @@ if __name__ == '__main__':
     # logging.info("test")
     for handler in logging.root.handlers[:]:
         logging.root.removeHandler(handler)
+        
+    if args.dataset == 'criteo':
+        args.n_parties = 10000
 
     if args.log_file_name is None:
         args.log_file_name = 'experiment_log-%s' % (datetime.datetime.now().strftime("%Y-%m-%d-%H:%M-%S"))
