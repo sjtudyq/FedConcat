@@ -867,3 +867,31 @@ class ImageFolder_custom(DatasetFolder):
             return len(self.samples)
         else:
             return len(self.dataidxs)
+        
+class Criteo(MNIST):
+
+    def __init__(self, root, dataidxs=None, net_id=None, train=True, transform=None, target_transform=None,
+                 download=False):
+        super(MNIST, self).__init__(root, transform=transform,
+                                    target_transform=target_transform)
+        self.train = train
+        self.net_id = net_id
+
+        if self.train:
+            if net_id is None:
+                self.data = np.load("data/generated/X_train.npy")
+                self.targets = np.load("data/generated/y_train.npy")
+            else:
+                self.data = np.load("data/generated/client/X_train{}.npy".format(net_id))
+                self.targets = np.load("data/generated/client/y_train{}.npy".format(net_id))
+        else:
+            self.data = np.load("data/generated/X_test.npy")
+            self.targets = np.load("data/generated/y_test.npy")
+
+
+    def __getitem__(self, index):
+        data, target = self.data[index], self.targets[index]
+        return data, target
+
+    def __len__(self):
+        return len(self.data)
