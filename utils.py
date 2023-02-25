@@ -11,7 +11,7 @@ from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader
 
 from model import *
-from datasets import MNIST_truncated, CIFAR10_truncated, CIFAR100_truncated, ImageFolder_custom, SVHN_custom, FashionMNIST_truncated, CustomTensorDataset, CelebA_custom, FEMNIST, Generated, genData
+from datasets import MNIST_truncated, CIFAR10_truncated, CIFAR100_truncated, ImageFolder_custom, SVHN_custom, FashionMNIST_truncated, CustomTensorDataset, CelebA_custom, FEMNIST, Generated, genData, Criteo
 from math import sqrt
 
 import torch.nn as nn
@@ -289,10 +289,95 @@ def partition_data(dataset, datadir, logdir, partition, n_parties, beta=0.4):
         np.save("data/generated/X_test.npy",X_test)
         np.save("data/generated/y_train.npy",y_train)
         np.save("data/generated/y_test.npy",y_test)
+    
+    elif dataset == 'criteo':
+        path = "./data/criteo/"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        if not os.path.exists("{}criteo_attribution_dataset.tsv".format(path)):
+            os.chdir(path)
+            if not os.path.exists("criteo-research-attribution-dataset.zip"):
+                os.system("wget http://go.criteo.net/criteo-research-attribution-dataset.zip")
+            os.system("unzip -u criteo-research-attribution-dataset.zip")
+            os.system("gzip -d criteo_attribution_dataset.tsv.gz")
+            os.chdir("../..")
+
+        f = open("{}criteo_attribution_dataset.tsv".format(path), "r")
+
+        all_data = f.readlines()
+        used_data = []
+        max_value = [0 for i in range(12)]
+
+        for i in range(1, len(all_data)):
+            current = all_data[i].split()
+            item = []
+            for j in range(10,22):
+                item.append(float(current[j]))
+            for j in range(12):
+                if item[j] > max_value[j]:
+                    max_value[j] = item[j]
+            item.append(int(current[7]))  # label
+            item.append(int(current[1]))  # user id
+            used_data.append(item)
+
+        for item in used_data:
+            for j in range(12):
+                if item[j] > 0:
+                    item[j] /= max_value[j]
+            
+        used_data = np.array(used_data, dtype=np.float32)
+        ordered_data = used_data[np.lexsort(used_data.T)]
+        
+        net_dataidx_map = {}
+        party_id = 0
+        current = np.array([0])
+        n_train = len(all_data)
+
+        for i in range(1, n_train):
+            if ordered_data[i][-1] == ordered_data[i-1][-1]:
+                current = np.append(current, [i])
+            else:
+                net_dataidx_map[party_id] = current
+                party_id += 1
+                current = np.array([i])
+                if party_id == n_parties:
+                    n_train = i
+                    break
+
+        test_id = np.array([])
+
+        for i in range(n_train+1, n_train+1000000):
+            if ordered_data[i][-1] == ordered_data[i-1][-1]:
+                current = np.append(current, [i])
+            else:
+                #if (len(current)>8):
+                test_id = np.append(test_id, current)
+                if len(test_id)>=10000:
+                    break
+                current = np.array([i])
+
+        test_id = test_id.astype(np.int32)
+        
+        X_train = np.array(ordered_data[:n_train,:-2], dtype=np.float32)
+        y_train = np.array(ordered_data[:n_train,-2], dtype=np.int32)
+
+        X_test = np.array(ordered_data[test_id,:-2], dtype=np.float32)
+        y_test = np.array(ordered_data[test_id,-2], dtype=np.int32)
+
+        mkdirs("data/generated/client/")
+        np.save("data/generated/X_train.npy",X_train)
+        np.save("data/generated/X_test.npy",X_test)
+        np.save("data/generated/y_train.npy",y_train)
+        np.save("data/generated/y_test.npy",y_test)
+
+        for i in range(party_id):
+            np.save("data/generated/client/X_train{}.npy".format(i), X_train[net_dataidx_map[i][0]:net_dataidx_map[i][-1]+1])
+            np.save("data/generated/client/y_train{}.npy".format(i), y_train[net_dataidx_map[i][0]:net_dataidx_map[i][-1]+1])
 
 
     n_train = y_train.shape[0]
-
+    if dataset == 'criteo':
+        pass
     if partition == "homo":
         idxs = np.random.permutation(n_train)
         batch_idxs = np.array_split(idxs, n_parties)
@@ -722,8 +807,8 @@ class AddGaussianNoise(object):
     def __repr__(self):
         return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
-def get_dataloader(dataset, datadir, train_bs, test_bs, dataidxs=None, noise_level=0, net_id=None, total=0):
-    if dataset in ('mnist', 'femnist', 'fmnist', 'cifar10', 'svhn', 'generated', 'covtype', 'a9a', 'rcv1', 'SUSY', 'cifar100', 'tinyimagenet'):
+def get_dataloader(dataset, datadir, train_bs, test_bs, dataidxs=None, noise_level=0, net_id=None, need_test=True, total=0):
+    if dataset in ('mnist', 'femnist', 'fmnist', 'cifar10', 'svhn', 'generated', 'covtype', 'a9a', 'rcv1', 'SUSY', 'cifar100', 'tinyimagenet', 'criteo'):
         if dataset == 'mnist':
             dl_obj = MNIST_truncated
 
@@ -817,6 +902,10 @@ def get_dataloader(dataset, datadir, train_bs, test_bs, dataidxs=None, noise_lev
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ])
+        elif dataset == 'criteo':
+            dl_obj = Criteo
+            transform_train = None
+            transform_test = None
 
         else:
             dl_obj = Generated
@@ -824,17 +913,33 @@ def get_dataloader(dataset, datadir, train_bs, test_bs, dataidxs=None, noise_lev
             transform_test = None
 
 
-        if dataset == "tinyimagenet":
-            train_ds = dl_obj(datadir+'./train/', dataidxs=dataidxs, transform=transform_train)
-            test_ds = dl_obj(datadir+'./val/', transform=transform_test)
-        else:
-            train_ds = dl_obj(datadir, dataidxs=dataidxs, train=True, transform=transform_train, download=True)
-            test_ds = dl_obj(datadir, train=False, transform=transform_test, download=True)
+        #if dataset == "tinyimagenet":
+        #    train_ds = dl_obj(datadir+'./train/', dataidxs=dataidxs, transform=transform_train)
+        #    test_ds = dl_obj(datadir+'./val/', transform=transform_test)
+        #else:
+        #    train_ds = dl_obj(datadir, dataidxs=dataidxs, train=True, transform=transform_train, download=True)
+        #    test_ds = dl_obj(datadir, train=False, transform=transform_test, download=True)
+
+        #train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, shuffle=True, drop_last=False)
+        #test_dl = data.DataLoader(dataset=test_ds, batch_size=test_bs, shuffle=False, drop_last=False)
+
+    #return train_dl, test_dl, train_ds, test_ds
+    if need_test:
+        train_ds = dl_obj(datadir, dataidxs=dataidxs, train=True, transform=transform_train, download=True)
+        test_ds = dl_obj(datadir, train=False, transform=transform_test, download=True)
 
         train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, shuffle=True, drop_last=False)
         test_dl = data.DataLoader(dataset=test_ds, batch_size=test_bs, shuffle=False, drop_last=False)
 
-    return train_dl, test_dl, train_ds, test_ds
+        return train_dl, test_dl, train_ds, test_ds
+    elif dataset == 'criteo':
+        train_ds = dl_obj(datadir, net_id=net_id, train=True, transform=transform_train, download=True)
+        train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, shuffle=True, drop_last=False)
+        return train_dl
+    else:
+        train_ds = dl_obj(datadir, dataidxs=dataidxs, train=True, transform=transform_train, download=True)
+        train_dl = data.DataLoader(dataset=train_ds, batch_size=train_bs, shuffle=True, drop_last=False)
+        return train_dl
 
 def weights_init(m):
     """
