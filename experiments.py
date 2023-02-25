@@ -373,13 +373,16 @@ def local_train_net(nets, selected, args, net_dataidx_map, test_dl = None, devic
         noise_level = args.noise
         if net_id == args.n_parties - 1:
             noise_level = 0
-
-        if args.noise_type == 'space':
-            train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level, net_id, args.n_parties-1)
+        
+        if args.dataset == "criteo":
+            train_dl_local = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, need_test=False, net_id=net_id)
         else:
-            noise_level = args.noise / (args.n_parties - 1) * net_id
-            train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level)
-        train_dl_global, test_dl_global, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32)
+            if args.noise_type == 'space':
+                train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level, net_id, args.n_parties-1)
+            else:
+                noise_level = args.noise / (args.n_parties - 1) * net_id
+                train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level)
+            train_dl_global, test_dl_global, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32)
         n_epoch = args.epochs
 
 
@@ -469,11 +472,14 @@ def local_train_net_encoder_classifier(encoder_list, classifier_list, selected, 
         if net_id == args.n_parties - 1:
             noise_level = 0
 
-        if args.noise_type == 'space':
-            train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level, net_id, args.n_parties-1)
+        if args.dataset == "criteo":
+            train_dl_local = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, need_test=False, net_id=net_id)
         else:
-            noise_level = args.noise / (args.n_parties - 1) * net_id
-            train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level)
+            if args.noise_type == 'space':
+                train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level, net_id, args.n_parties-1)
+            else:
+                noise_level = args.noise / (args.n_parties - 1) * net_id
+                train_dl_local, test_dl_local, _, _ = get_dataloader(args.dataset, args.datadir, args.batch_size, 32, dataidxs, noise_level)
         n_epoch = args.epochs
 
         train_net_encoder_classifier(net_id, encoder_list[net_id], classifier_list[net_id], train_dl_local, test_dl, n_epoch, args.lr, args.optimizer, device=device)
