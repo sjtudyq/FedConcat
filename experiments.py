@@ -1259,6 +1259,8 @@ if __name__ == '__main__':
             num_ftrs = 512
         elif args.model == "resnet":
             num_ftrs = 2048
+        elif args.dataset == "criteo":
+            num_ftrs = 32
         encoder_list = []
         classifier_list = []
         for i in range(args.n_parties):
