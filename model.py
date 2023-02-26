@@ -20,7 +20,7 @@ class FcNet(nn.Module):
 
         self.dims = [self.input_dim]
         self.dims.extend(hidden_dims)
-        self.dims.append(self.output_dim)
+        #self.dims.append(self.output_dim)
 
         self.layers = nn.ModuleList([])
 
