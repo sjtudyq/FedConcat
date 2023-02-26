@@ -1264,7 +1264,13 @@ if __name__ == '__main__':
         encoder_list = []
         classifier_list = []
         for i in range(args.n_parties):
-            if args.dataset in ("tinyimagenet", "cifar100", "cifar10", "svhn"):
+            if args.dataset in ("tinyimagenet", "cifar100", "cifar10", "svhn", "criteo"):
+                if args.dataset == 'criteo':
+                    input_size = 12
+                    output_size = 2
+                    hidden_sizes = [16, 24, 32]        
+                    encoder = FcEncoder(input_size, hidden_sizes, output_size, 0)
+                    encoder_list.append(encoder)
                 if args.model == "simple-cnn":
                     encoder = SimpleEncoder(input_dim=(16 * 5 * 5), hidden_dims=[120, 84], output_dim=10)
                     encoder_list.append(encoder)
@@ -1278,6 +1284,8 @@ if __name__ == '__main__':
                     classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=100)
                 elif args.dataset == "tinyimagenet":
                     classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=200)
+                elif args.dataset == "criteo":
+                    classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=2)
                 else:
                     classifier = SimpleClassifier(hidden_dim=num_ftrs, output_dim=10)
                 classifier_list.append(classifier)
