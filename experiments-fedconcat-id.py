@@ -1331,7 +1331,7 @@ if __name__ == '__main__':
         estimator.fit(estimated_dis)
         assign = estimator.labels_
         if args.dataset in ("cifar100", "tinyimagenet"):
-            assign = constrained_kmeans(estimated_dis,num_K,int(1.2*args.n_parties/args.n_clusters))
+            assign = constrained_kmeans(np.array(estimated_dis),num_K,int(1.2*args.n_parties/args.n_clusters))
         logger.info(assign)
         group = [[] for i in range(num_K)]
         for i in range(args.n_parties):
