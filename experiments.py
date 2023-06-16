@@ -12,6 +12,7 @@ import logging
 import os
 import copy
 from math import *
+from kmeanslimited import *
 from sklearn.cluster import KMeans
 import random
 
@@ -1304,6 +1305,8 @@ if __name__ == '__main__':
         estimator = KMeans(n_clusters=num_K)
         estimator.fit(client_distribution)
         assign = estimator.labels_
+        if args.dataset in ("cifar100", "tinyimagenet"):
+            assign = constrained_kmeans(client_distribution,num_K,int(1.2*args.n_parties/args.n_clusters))
         logger.info(assign)
         group = [[] for i in range(num_K)]
         for i in range(args.n_parties):
