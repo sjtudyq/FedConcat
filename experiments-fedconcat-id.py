@@ -399,7 +399,10 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, train_data
         optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=lr, weight_decay=args.reg,
                                amsgrad=True)
     elif args_optimizer == 'sgd':
-        optimizer = optim.SGD([{'params': net_encoder.parameters()}, {'params': net_classifier.parameters()}], lr=lr, momentum=args.rho, weight_decay=args.reg)
+        if args.dataset in ("cifar100", "tinyimagenet"):
+            optimizer = optim.SGD([{'params': net_encoder.parameters()}, {'params': net_classifier.parameters()}], lr=lr, momentum=args.rho, weight_decay=0.001)
+        else:
+            optimizer = optim.SGD([{'params': net_encoder.parameters()}, {'params': net_classifier.parameters()}], lr=lr, momentum=args.rho, weight_decay=args.reg)
     #criterion = nn.MSELoss().to(device)
     classification_loss = nn.CrossEntropyLoss().to(device)
 
