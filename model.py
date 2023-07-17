@@ -247,22 +247,13 @@ class CombineAllModel(nn.Module):
     def __init__(self, encoder_list):
         super(CombineAllModel, self).__init__()
 
-        self.nets = encoder_list
+        self.nets = nn.ModuleList(encoder_list)
 
     def forward(self, x):
         n = len(self.nets)
-        if self.training:
-            for net in self.nets:
-                net.train()  # set the model to training mode
-            features = self.nets[0](x)
-            for i in range(1,n):
-                features = torch.cat((features, self.nets[i](x)), 1)
-        else:
-            for net in self.nets:
-                net.eval()  # set the model to evaluation mode
-            features = self.nets[0](x)
-            for i in range(1,n):
-                features = torch.cat((features, self.nets[i](x)), 1)
+        features = self.nets[0](x)
+        for i in range(1,n):
+            features = torch.cat((features, self.nets[i](x)), 1)
 
         return features
         
