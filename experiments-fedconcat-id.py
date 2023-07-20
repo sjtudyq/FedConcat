@@ -1457,6 +1457,11 @@ if __name__ == '__main__':
             encoder_selected.append(encoder_list[i])
             encoder_selected[i].load_state_dict(encoder_global_para[i])
             encoder_selected[i].to(device)
+        classifier_selected = []
+        for i in range(num_K):
+            classifier_selected.append(classifier_list[i])
+            classifier_selected[i].load_state_dict(classifier_global_para[i])
+            classifier_selected[i].to(device)
 
         encoder_all = CombineAllModel(encoder_selected)
         if args.dataset == "cifar100":
@@ -1466,6 +1471,30 @@ if __name__ == '__main__':
         else:
             output_dim = 10
         larger_classifier_global = SimpleClassifier(hidden_dim=num_ftrs*num_K, output_dim=output_dim)
+
+        start_from_classifier_weight = False # if set to True, the final classifier layer will be initialized as the previous cluster model's classifier layers (to speed up convergence).
+        if start_from_classifier_weight:
+            # Retrieve the weights from each model in classifier_global_para
+            weights = [model.fc.weight for model in classifier_selected]
+            biases = [model.fc.bias for model in classifier_selected]
+
+            # Concatenate along the dimension of number of neurons in the hidden layer
+            # The weights are transposed before concatenating because in PyTorch, the Linear layer's weight shape is (output_dim, input_dim)
+            weights_tensor = torch.cat([w.t() for w in weights], dim=0).t()
+            biases_tensor = sum(biases)
+            logger.info(weights_tensor.shape)
+            logger.info(biases_tensor.shape)
+
+            # Create a state dictionary to load into the larger_classifier_global
+            state_dict = {
+                'fc.weight': weights_tensor,
+                'fc.bias': biases_tensor,
+            }
+
+            # Load the state dict into the model
+            larger_classifier_global.load_state_dict(state_dict)
+            logger.info("loading initial classifier parameters done")
+            
         larger_classifier_global_para = larger_classifier_global.cpu().state_dict()
 
         larger_classifier_list = []
