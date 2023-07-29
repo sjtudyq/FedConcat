@@ -1471,8 +1471,10 @@ if __name__ == '__main__':
         else:
             output_dim = 10
         larger_classifier_global = SimpleClassifier(hidden_dim=num_ftrs*num_K, output_dim=output_dim)
-
+        
         start_from_classifier_weight = False # if set to True, the final classifier layer will be initialized as the previous cluster model's classifier layers (to speed up convergence).
+        if args.dataset in ("cifar100", "tinyimagenet"):
+            start_from_classifier_weight = True
         if start_from_classifier_weight:
             # Retrieve the weights from each model in classifier_global_para
             weights = [model.fc.weight for model in classifier_selected]
