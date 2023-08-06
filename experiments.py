@@ -411,8 +411,11 @@ def train_net_encoder_classifier(net_id, net_encoder, net_classifier, train_data
                                amsgrad=True)
     elif args_optimizer == 'sgd':
         if args.dataset in ("cifar100", "tinyimagenet"):
-            if args.partition == 'noniid-labeldir' and args.beta > 0.4:
-                wd_factor = 0.005
+            if args.partition == 'noniid-labeldir':
+                if args.dataset == 'cifar100' and args.beta > 0.4:
+                    wd_factor = 0.005
+                else:
+                    wd_factor = 0.002
             else:
                 wd_factor = 0.001
             optimizer = optim.SGD([{'params': net_encoder.parameters()}, {'params': net_classifier.parameters()}], lr=lr, momentum=args.rho, weight_decay=wd_factor)
