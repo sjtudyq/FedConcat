@@ -1,6 +1,6 @@
 # FedConcat
 
-This is source code for Exploiting Label Skew in Federated Learning with Model Concatenation. 
+This is source code for [Exploiting Label Skew in Federated Learning with Model Concatenation](https://arxiv.org/abs/2312.06290). 
 
 An example running script is in `run.sh`.
 
@@ -23,3 +23,18 @@ An example running script is in `run.sh`.
 | `datadir` | The path of the dataset, default = `./data/`. |
 | `logdir` | The path to store the logs, default = `./logs/`. |
 | `init_seed` | The initial seed, default = `0`. |
+
+
+
+## Citation
+If you find this repository useful, please cite our paper:
+
+```
+@article{diao2023exploiting,
+  title={Exploiting Label Skews in Federated Learning with Model Concatenation},
+  author={Diao, Yiqun and Li, Qinbin and He, Bingsheng},
+  journal={arXiv preprint arXiv:2312.06290},
+  year={2023}
+}
+```
+
